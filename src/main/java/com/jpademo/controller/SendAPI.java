@@ -1,5 +1,6 @@
 package com.jpademo.controller;
 
+import com.google.gson.Gson;
 import com.jpademo.domain.entity.Product;
 import com.jpademo.domain.entity.ProductDetail;
 import com.jpademo.domain.entity.detail.Card;
@@ -21,8 +22,54 @@ public class SendAPI {
     @Autowired
     ProductRepository productRepository;
 
-    @GetMapping("/")
+    @GetMapping("/test1")
     public String Test() {
+        List<Product> productList = productRepository.findByProdCode("001");
+
+        Map<String, Object> list = new HashMap<>();
+
+
+        if ( productList.size() == 0 )
+            return "";
+
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        for (Product product : productList) {
+
+            Map<String, Object> resMap = new HashMap<>();
+            resMap.put("prod_Code",product.getProdCode());
+            resMap.put("prod_Name",product.getProdName());
+            List<Map<String, Object>> detailList = new ArrayList<>();
+            List<ProductDetail> productDetails = product.getProductDetails();
+
+            for (ProductDetail productDetail : productDetails) {
+
+                Map<String, Object> productDetailMap = new HashMap<>();
+                productDetailMap.put("prodDetail_Code",productDetail.getDetailCode());
+                productDetailMap.put("prodDetail_Name",productDetail.getDetailName());
+                List<Map<String, Object>> cardList = new ArrayList<>();
+                List<Card> cards = productDetail.getCards();
+
+                for (Card card : cards) {
+                    Map<String, Object> resSubCardMap = new HashMap<>();
+                    resSubCardMap.put("prodDetailCard_Code",card.getId());
+                    resSubCardMap.put("prodDetailCard_Name",card.getCardName());
+                    cardList.add(resSubCardMap);
+                 }
+
+                productDetailMap.put("prodDetailCard_list", cardList);
+                detailList.add(productDetailMap);
+            }
+            resMap.put("prodDetail_list", detailList);
+            resultList.add(resMap);
+        }
+
+
+        Gson gson = new Gson();
+        return gson.toJson(resultList.toString());
+    }
+
+    @GetMapping("/test2")
+    public String Test2() {
         List<Product> productList = productRepository.findByProdCode("002");
 
 
@@ -43,15 +90,6 @@ public class SendAPI {
                 Map<String, Object> productDetailMap = new HashMap<>();
                 productDetailMap.put("prodDetail_Code",productDetail.getDetailCode());
                 productDetailMap.put("prodDetail_Name",productDetail.getDetailName());
-                List<Card> cards = productDetail.getCards();
-
-                for (Card card : cards) {
-                    Map<String, Object> resSubCardMap = new HashMap<>();
-                    resSubCardMap.put("prodDetailCard_Code",card.getId());
-                    resSubCardMap.put("prodDetailCard_Name",card.getCardName());
-                    cardList.add(resSubCardMap);
-                 }
-                productDetailMap.put("prodDetailCard_list", cardList);
 
                 List<Loan> loans = productDetail.getLoans();
                 for (Loan loan : loans) {
